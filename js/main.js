@@ -1,6 +1,6 @@
 var City = require('./city');
 
-var scene, camera, renderer, effect;
+var scene, camera, renderer, effect, controls;
 var light;
 var lastTime;
 var artificial_vr;
@@ -96,6 +96,7 @@ function animate() {
     camera.rotation.y += 0.001; // slow pan around the scene
   }
 
+  controls.update();
   effect.render(scene, camera);
 
   lastTime = time;
