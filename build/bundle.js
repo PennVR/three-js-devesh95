@@ -71,11 +71,6 @@
 	  // create a new scene
 	  scene = new THREE.Scene();
 
-	  // Camera should be anchored on top of the central building
-	  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
-	  camera.position.set(0, 100, 0);
-	  scene.add(camera);
-
 	  // fog effect for distant buildings
 	  scene.fog = new THREE.FogExp2(night_sky, 0.0025);
 
@@ -106,6 +101,11 @@
 	  document.body.appendChild(info);
 
 	  lastTime = performance.now();
+
+	  // Camera should be anchored on top of the central building
+	  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
+	  camera.position.set(0, 100, 0);
+	  scene.add(camera);
 
 	  // allow for VR headset navigation and viewing
 	  controls = new THREE.VRControls(camera);

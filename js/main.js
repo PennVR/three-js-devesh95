@@ -25,11 +25,6 @@ function init() {
   // create a new scene
   scene = new THREE.Scene();
 
-  // Camera should be anchored on top of the central building
-  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
-  camera.position.set(0, 100, 0);
-  scene.add(camera);
-
   // fog effect for distant buildings
   scene.fog = new THREE.FogExp2(night_sky, 0.0025);
 
@@ -44,7 +39,6 @@ function init() {
   }));
   plane.rotation.x = -90 * Math.PI / 180;
   scene.add(plane);
-
 
   // add the procedurally generated city to the scene
   const city_mesh = new City(20000, renderer.getMaxAnisotropy()).mesh;
@@ -62,6 +56,10 @@ function init() {
 
   lastTime = performance.now();
 
+  // Camera should be anchored on top of the central building
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
+  camera.position.set(0, 100, 0);
+  scene.add(camera);
 
   // allow for VR headset navigation and viewing
   controls = new THREE.VRControls(camera);
@@ -80,7 +78,6 @@ function init() {
       });
 
     document.body.appendChild(WEBVR.getButton(effect));
-
   } else {
     artificial_vr = true;
   }
@@ -101,7 +98,7 @@ function animate() {
   effect.requestAnimationFrame(animate);
 
   var time = performance.now() / 1000;
-  
+
   render();
 
   lastTime = time;
