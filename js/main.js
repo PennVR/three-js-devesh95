@@ -42,6 +42,7 @@ function init() {
 
   // add the procedurally generated city to the scene
   const city_mesh = new City(20000, renderer.getMaxAnisotropy()).mesh;
+  city_mesh.position.set(0, -100, 0);
   scene.add(city_mesh);
 
   var info = document.createElement('div');
@@ -58,7 +59,6 @@ function init() {
 
   // Camera should be anchored on top of the central building
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
-  camera.position.set(0, 100, 0);
 
   // allow for VR headset navigation and viewing
   controls = new THREE.VRControls(camera);
