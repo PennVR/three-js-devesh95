@@ -46,7 +46,7 @@
 
 	var City = __webpack_require__(1);
 
-	var scene, camera, renderer, effect;
+	var scene, camera, renderer, effect, controls;
 	var light;
 	var lastTime;
 	var artificial_vr;
@@ -71,7 +71,7 @@
 	  scene = new THREE.Scene();
 
 	  // Camera should be anchored on top of the central building
-	  camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 3000);
+	  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
 	  camera.position.y = 100;
 	  scene.add(camera);
 
@@ -134,6 +134,7 @@
 	    camera.rotation.y += 0.001; // slow pan around the scene
 	  }
 
+	  controls.update();
 	  effect.render(scene, camera);
 
 	  lastTime = time;
