@@ -27,7 +27,7 @@ function init() {
 
   // Camera should be anchored on top of the central building
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
-  // camera.position.y = 100;
+  camera.position.y = 100;
   // scene.add(camera);
 
   // fog effect for distant buildings
