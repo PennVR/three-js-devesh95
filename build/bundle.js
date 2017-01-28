@@ -63,6 +63,7 @@
 	    antialias: false,
 	    alpha: false
 	  });
+	  renderer.setPixelRatio(window.devicePixelRatio);
 	  renderer.setClearColor(night_sky);
 	  renderer.setSize(window.innerWidth, window.innerHeight);
 	  document.body.appendChild(renderer.domElement);
@@ -112,17 +113,25 @@
 
 	  if (navigator.getVRDisplays) {
 	    artificial_vr = false;
-	    navigator.getVRDisplays().then(function (displays) {
+	    navigator.getVRDisplays().then(displays => {
 	      effect.setVRDisplay(displays[0]);
 	      controls.setVRDisplay(displays[0]);
-	    }).catch(function () {
+	    }).catch(() => {
 	      // no displays
+	      artificial_vr = true;
 	    });
 
 	    document.body.appendChild(WEBVR.getButton(effect));
 	  } else {
 	    artificial_vr = true;
 	  }
+
+	  window.addEventListener('resize', () => {
+	    camera.aspect = window.innerWidth / window.innerHeight;
+	    camera.updateProjectionMatrix();
+
+	    effect.setSize(window.innerWidth, window.innerHeight);
+	  });
 	}
 
 	function animate() {
@@ -130,14 +139,19 @@
 	  effect.requestAnimationFrame(animate);
 
 	  var time = performance.now() / 1000;
+
+	  render();
+
+	  lastTime = time;
+	}
+
+	function render() {
 	  if (artificial_vr) {
 	    camera.rotation.y += 0.001; // slow pan around the scene
 	  }
 
 	  controls.update();
 	  effect.render(scene, camera);
-
-	  lastTime = time;
 	}
 
 /***/ },
