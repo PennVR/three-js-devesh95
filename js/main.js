@@ -41,7 +41,7 @@ function init() {
   scene.add(plane);
 
   // add the procedurally generated city to the scene
-  const city_mesh = new City(10000, renderer.getMaxAnisotropy()).mesh;
+  const city_mesh = new City(15000, renderer.getMaxAnisotropy()).mesh;
   city_mesh.position.set(0, -100, 0);
   scene.add(city_mesh);
 

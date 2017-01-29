@@ -44,7 +44,7 @@ class City {
 
     // generate randomized buildings within the city
     for (let i = 0; i < this.numBuildings; i++) {
-      const noise = this.simplex.noise(i, i+1); // simplex noise
+      const noise = this.simplex.noise(i, i+2); // simplex noise
       building.position.x = Math.floor(Math.random() * 200 - 100) * 10;
       building.position.z = Math.floor(Math.random() * 200 - 100) * 10;
       building.rotation.y = Math.random();

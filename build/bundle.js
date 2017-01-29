@@ -87,7 +87,7 @@
 	  scene.add(plane);
 
 	  // add the procedurally generated city to the scene
-	  const city_mesh = new City(10000, renderer.getMaxAnisotropy()).mesh;
+	  const city_mesh = new City(15000, renderer.getMaxAnisotropy()).mesh;
 	  city_mesh.position.set(0, -100, 0);
 	  scene.add(city_mesh);
 
@@ -198,7 +198,7 @@
 
 	    // generate randomized buildings within the city
 	    for (let i = 0; i < this.numBuildings; i++) {
-	      const noise = this.simplex.noise(i, i + 1); // simplex noise
+	      const noise = this.simplex.noise(i, i + 2); // simplex noise
 	      building.position.x = Math.floor(Math.random() * 200 - 100) * 10;
 	      building.position.z = Math.floor(Math.random() * 200 - 100) * 10;
 	      building.rotation.y = Math.random();
