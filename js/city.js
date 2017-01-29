@@ -5,11 +5,14 @@
  * @author: Devesh Dayal
  */
 
+const SimplexNoise = require('./noise');
+
 class City {
 
   constructor(numBuildings = 20000, anisotropy) {
     this.numBuildings = numBuildings;
     this.anisotropy = anisotropy;
+    this.simplex = new SimplexNoise();
   }
 
   get mesh() {
@@ -20,33 +23,33 @@ class City {
 
   _constructGeometry() {
     // create a box geometry to represent each building
-    this.geometry = new THREE.BoxGeometry(1, 1, 1);
+    this.cube_geometry = new THREE.BoxGeometry(1, 1, 1);
     // center the pivot point to the middle of the base
-    this.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
+    this.cube_geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0.5, 0));
     // the top face, represented as two triangles, should be the same color as
     // the floor face (black)
-    this.geometry.uvsNeedUpdate = true;
-    this.geometry.faceVertexUvs[0][4][0].set(0, 0);
-    this.geometry.faceVertexUvs[0][4][1].set(0, 0);
-    this.geometry.faceVertexUvs[0][4][2].set(0, 0);
-    this.geometry.faceVertexUvs[0][5][0].set(0, 0);
-    this.geometry.faceVertexUvs[0][5][1].set(0, 0);
-    this.geometry.faceVertexUvs[0][5][2].set(0, 0);
+    this.cube_geometry.uvsNeedUpdate = true;
+    this.cube_geometry.faceVertexUvs[0][4][0].set(0, 0);
+    this.cube_geometry.faceVertexUvs[0][4][1].set(0, 0);
+    this.cube_geometry.faceVertexUvs[0][4][2].set(0, 0);
+    this.cube_geometry.faceVertexUvs[0][5][0].set(0, 0);
+    this.cube_geometry.faceVertexUvs[0][5][1].set(0, 0);
+    this.cube_geometry.faceVertexUvs[0][5][2].set(0, 0);
   }
 
   _buildCity() {
     // create building and city meshes
-    let building = new THREE.Mesh(this.geometry);
+    let building = new THREE.Mesh(this.cube_geometry);
     this.city = new THREE.Geometry();
 
     // generate randomized buildings within the city
-    for (var i = 0; i < this.numBuildings; i++) {
-      // TODO use Perlin noise, not random points
+    for (let i = 0; i < this.numBuildings; i++) {
+      const noise = this.simplex.noise(i, i+1); // simplex noise
       building.position.x = Math.floor(Math.random() * 200 - 100) * 10;
       building.position.z = Math.floor(Math.random() * 200 - 100) * 10;
       building.rotation.y = Math.random();
       building.scale.x = building.scale.z = Math.random() * Math.random() * Math.random() * Math.random() * 50 + 10;
-      building.scale.y = (Math.random() * Math.random() * Math.random() * building.scale.x) * 8 + 8;
+      building.scale.y = (noise * 100) + 10; // building height noise map
 
       // merge each building to the city mesh
       building.updateMatrix();
@@ -98,7 +101,6 @@ class City {
           if (isYellow < 0.5) {
             colors = Array(3).fill(250);
           }
-          // var value = Math.floor(Math.random() * 64);
           context.fillStyle = 'rgb(' + colors.join(',') + ')';
           context.fillRect(x, y, 2, 1);
         }

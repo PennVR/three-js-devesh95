@@ -1,4 +1,4 @@
-var City = require('./city');
+const City = require('./city');
 
 var scene, camera, renderer, effect, controls;
 var light;
@@ -7,11 +7,10 @@ var artificial_vr;
 
 const night_sky = 0x003366;
 
-init();
-animate();
+init();           // procedurally generate the scene
+animate();        // begin animations / vr feedback loop
 
 function init() {
-
   // create the WebGL renderer
   renderer = new THREE.WebGLRenderer({
     antialias: false,
@@ -42,7 +41,7 @@ function init() {
   scene.add(plane);
 
   // add the procedurally generated city to the scene
-  const city_mesh = new City(20000, renderer.getMaxAnisotropy()).mesh;
+  const city_mesh = new City(10000, renderer.getMaxAnisotropy()).mesh;
   city_mesh.position.set(0, -100, 0);
   scene.add(city_mesh);
 
@@ -92,23 +91,18 @@ function init() {
 }
 
 
-
 function animate() {
-
   effect.requestAnimationFrame(animate);
-
   var time = performance.now() / 1000;
-
   render();
-
   lastTime = time;
 }
+
 
 function render() {
   if (artificial_vr) {
     camera.rotation.y += 0.001; // slow pan around the scene
   }
-
   controls.update();
   effect.render(scene, camera);
 }
