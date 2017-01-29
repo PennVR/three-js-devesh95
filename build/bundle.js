@@ -92,10 +92,10 @@
 	  scene.add(city_mesh);
 
 	  // add centered building below viewer
-	  let anchor = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), new THREE.MeshBasicMaterial({
+	  let anchor = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
 	    color: 0xffffff
 	  }));
-	  plane.position.set(0, -1, 0);
+	  plane.position.set(0, -10, 0);
 	  plane.rotation.x = -90 * Math.PI / 180;
 	  scene.add(plane);
 
