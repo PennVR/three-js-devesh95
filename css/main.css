@@ -8,3 +8,13 @@ body {
 a {
   color: #f00;
 }
+
+.label {
+  position: absolute;
+  left: 0;
+  top: 15px;
+  width: 100%;
+  color: rgba(250, 250, 250, 0.5);
+  text-align: center;
+  z-index: 999;
+}

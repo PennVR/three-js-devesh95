@@ -7,8 +7,8 @@ var artificial_vr;
 
 const night_sky = 0x003366;
 
-init();           // procedurally generate the scene
-animate();        // begin animations / vr feedback loop
+init(); // procedurally generate the scene
+animate(); // begin animations / vr feedback loop
 
 function init() {
   // create the WebGL renderer
@@ -33,7 +33,7 @@ function init() {
   scene.add(light);
 
   // add the ground/base of the city
-  var plane = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshBasicMaterial({
+  let plane = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshBasicMaterial({
     color: 0x101018
   }));
   plane.position.set(0, -100, 0);
@@ -45,15 +45,13 @@ function init() {
   city_mesh.position.set(0, -100, 0);
   scene.add(city_mesh);
 
-  var info = document.createElement('div');
-  info.style.position = 'absolute';
-  info.style.left = '0';
-  info.style.top = '15px';
-  info.style.width = '100%';
-  info.style.color = 'rgba(250,250,250,0.5)';
-  info.style.textAlign = 'center';
-  info.textContent = 'Look around to explore the city and enjoy the fireworks';
-  document.body.appendChild(info);
+  // add centered building below viewer
+  let anchor = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), new THREE.MeshBasicMaterial({
+    color: 0xffffff
+  }));
+  plane.position.set(0, -1, 0);
+  plane.rotation.x = -90 * Math.PI / 180;
+  scene.add(plane);
 
   lastTime = performance.now();
 
@@ -93,7 +91,7 @@ function init() {
 
 function animate() {
   effect.requestAnimationFrame(animate);
-  var time = performance.now() / 1000;
+  const time = performance.now() / 1000;
   render();
   lastTime = time;
 }
@@ -101,7 +99,7 @@ function animate() {
 
 function render() {
   if (artificial_vr) {
-    camera.rotation.y += 0.001; // slow pan around the scene
+    camera.rotation.y += 0.01; // slow pan around the scene
   }
   controls.update();
   effect.render(scene, camera);
