@@ -88,12 +88,12 @@
 
 	  // add the procedurally generated city to the scene
 	  const city_mesh = new City(15000, renderer.getMaxAnisotropy()).mesh;
-	  city_mesh.position.set(0, -100, 0);
+	  city_mesh.position.set(0, -90, 0);
 	  scene.add(city_mesh);
 
 	  // add centered building below viewer
-	  let anchor = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), new THREE.MeshBasicMaterial({
-	    color: 0xffffff
+	  let anchor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshBasicMaterial({
+	    color: 0xcccccc
 	  }));
 	  anchor.position.set(0, -10, 0);
 	  anchor.rotation.x = -90 * Math.PI / 180;
@@ -140,7 +140,7 @@
 
 	function render() {
 	  if (artificial_vr) {
-	    camera.rotation.y += 0.01; // slow pan around the scene
+	    camera.rotation.y += 0.001; // slow pan around the scene
 	  }
 	  controls.update();
 	  effect.render(scene, camera);
