@@ -6,7 +6,7 @@
 
 class FireworksManager {
 
-  constructor(scene, explosionMaxSize = 60, explosionScatter = 200) {
+  constructor(scene, explosionMaxSize = 100, explosionScatter = 200) {
     this.scene = scene;
     this.toExplode = {};
     this.hasExploded = {};
@@ -28,7 +28,7 @@ class FireworksManager {
 
   _getMaterial() {
     return new THREE.PointsMaterial({
-      size: 5,
+      size: 1,
       color: 0xffffff,
       opacity: 1,
       vertexColors: true,
@@ -94,11 +94,13 @@ class FireworksManager {
         THREE.Math.randInt(in_vector.z - 10, in_vector.z + 10),
       ));
 
+      const scatter = this.explosionScatter + ((explosionScatter / 3) * Math.random());
+
       // add random destination vector
       destinations.push(new THREE.Vector3(
-        THREE.Math.randInt(in_vector.x - this.explosionScatter, in_vector.x + this.explosionScatter),
-        THREE.Math.randInt(in_vector.y - this.explosionScatter, in_vector.y + this.explosionScatter),
-        THREE.Math.randInt(in_vector.z - this.explosionScatter, in_vector.z + this.explosionScatter)
+        THREE.Math.randInt(in_vector.x - scatter, in_vector.x + scatter),
+        THREE.Math.randInt(in_vector.y - scatter, in_vector.y + scatter),
+        THREE.Math.randInt(in_vector.z - scatter, in_vector.z + scatter)
       ));
     }
     geometry.colors = colors;
