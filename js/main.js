@@ -81,7 +81,7 @@ function init() {
   let anchor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshBasicMaterial({
     color: 0xcccccc
   }));
-  anchor.position.set(0, 100 - HMD_OFFSET, 0);
+  anchor.position.set(0, 80 - HMD_OFFSET, 0);
   anchor.rotation.x = -90 * Math.PI / 180;
   scene.add(anchor);
 
@@ -144,7 +144,7 @@ function render() {
   controls.update();
 
   // fireworks!
-  if (Math.random() < 0.05) {
+  if (Math.random() < 0.10) {
     const x = Math.floor(Math.random() * 200 - 100) * 10;
     const z = (Math.floor(Math.random() * 200 - 100) * 10) + 60;
     const from = new THREE.Vector3(x, 10, z);
