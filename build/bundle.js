@@ -514,7 +514,7 @@
 	      // add starting (from) vector
 	      geometry.vertices.push(new THREE.Vector3(THREE.Math.randInt(in_vector.x - 10, in_vector.x + 10), THREE.Math.randInt(in_vector.y - 10, in_vector.y + 10), THREE.Math.randInt(in_vector.z - 10, in_vector.z + 10)));
 
-	      const scatter = this.explosionScatter + explosionScatter / 3 * Math.random();
+	      const scatter = this.explosionScatter + this.explosionScatter / 3 * Math.random();
 
 	      // add random destination vector
 	      destinations.push(new THREE.Vector3(THREE.Math.randInt(in_vector.x - scatter, in_vector.x + scatter), THREE.Math.randInt(in_vector.y - scatter, in_vector.y + scatter), THREE.Math.randInt(in_vector.z - scatter, in_vector.z + scatter)));

@@ -94,7 +94,7 @@ class FireworksManager {
         THREE.Math.randInt(in_vector.z - 10, in_vector.z + 10),
       ));
 
-      const scatter = this.explosionScatter + ((explosionScatter / 3) * Math.random());
+      const scatter = this.explosionScatter + ((this.explosionScatter / 3) * Math.random());
 
       // add random destination vector
       destinations.push(new THREE.Vector3(
