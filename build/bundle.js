@@ -55,6 +55,7 @@
 	var artificial_vr;
 
 	const night_sky = 0x003366;
+	const HMD_OFFSET = 100;
 
 	init(); // procedurally generate the scene
 	animate(); // begin animations / vr feedback loop
@@ -87,12 +88,12 @@
 	  for (let i = 0; i < 10000; i++) {
 	    const star = new THREE.Vector3();
 	    star.x = THREE.Math.randFloatSpread(2000);
-	    star.y = THREE.Math.randFloatSpread(2000);
+	    star.y = THREE.Math.randFloat(150 - HMD_OFFSET, 2000 - HMD_OFFSET);
 	    star.z = THREE.Math.randFloatSpread(2000);
 	    starsGeometry.vertices.push(star);
 	  }
 	  const starsMaterial = new THREE.PointsMaterial({
-	    color: 0xcccccc
+	    color: 0xeeeeee
 	  });
 	  const starField = new THREE.Points(starsGeometry, starsMaterial);
 	  scene.add(starField);
@@ -101,18 +102,18 @@
 	  let plane = new THREE.Mesh(new THREE.PlaneGeometry(2500, 2500), new THREE.MeshBasicMaterial({
 	    color: 0x101018
 	  }));
-	  plane.position.set(0, 0, 0);
+	  plane.position.set(0, 0 - HMD_OFFSET, 0);
 	  plane.rotation.x = -90 * Math.PI / 180;
 	  scene.add(plane);
 
 	  // add the procedurally generated city to the scene (made with perlin noise!)
 	  const city_mesh = new City(5000, renderer.getMaxAnisotropy()).mesh;
-	  city_mesh.position.set(0, 0, 0);
+	  city_mesh.position.set(0, 0 - HMD_OFFSET, 0);
 	  scene.add(city_mesh);
 
 	  // add background mountain ring (made with perlin noise!)
 	  const mountain_mesh = new Mountains(1400, 100).mesh;
-	  mountain_mesh.position.set(0, -10, 0);
+	  mountain_mesh.position.set(0, -10 - HMD_OFFSET, 0);
 	  mountain_mesh.rotation.x = -90 * Math.PI / 180;
 	  scene.add(mountain_mesh);
 
@@ -120,7 +121,7 @@
 	  let anchor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshBasicMaterial({
 	    color: 0xcccccc
 	  }));
-	  anchor.position.set(0, 100, 0);
+	  anchor.position.set(0, 100 - HMD_OFFSET, 0);
 	  anchor.rotation.x = -90 * Math.PI / 180;
 	  scene.add(anchor);
 
@@ -131,7 +132,7 @@
 
 	  // Camera should be anchored on top of the central building
 	  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
-	  camera.position.y = 120;
+	  camera.position.y = 120 - HMD_OFFSET;
 
 	  // allow for VR headset navigation and viewing
 	  controls = new THREE.VRControls(camera);
@@ -178,7 +179,7 @@
 	    const x = Math.floor(Math.random() * 200 - 100) * 10;
 	    const z = Math.floor(Math.random() * 200 - 100) * 10 + 60;
 	    const from = new THREE.Vector3(x, 10, z);
-	    const to = new THREE.Vector3(x, 250 + Math.random() * 100, z);
+	    const to = new THREE.Vector3(x, 250 + Math.random() * 100 - HMD_OFFSET, z);
 	    fireworksManager.launch(from, to);
 	  }
 	  fireworksManager.update();
