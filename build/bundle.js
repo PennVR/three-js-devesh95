@@ -452,7 +452,7 @@
 
 	  _getMaterial() {
 	    return new THREE.PointsMaterial({
-	      size: 1,
+	      size: 4,
 	      color: 0xffffff,
 	      opacity: 1,
 	      vertexColors: true,
