@@ -148,7 +148,8 @@ function render() {
     const x = Math.floor(Math.random() * 200 - 100) * 10;
     const z = (Math.floor(Math.random() * 200 - 100) * 10) + 60;
     const from = new THREE.Vector3(x, 10, z);
-    const to = new THREE.Vector3(x, (250 + (Math.random() * 100) - HMD_OFFSET), z);
+    const fireworks_height = 250 + (Math.random() * 150);
+    const to = new THREE.Vector3(x, fireworks_height - HMD_OFFSET), z);
     fireworksManager.launch(from, to);
   }
   fireworksManager.update();
