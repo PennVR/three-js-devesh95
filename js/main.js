@@ -1,6 +1,9 @@
 const City = require('./city');
+const FireworksManager = require('./fireworks');
+const Mountains = require('./mountains');
 
 var scene, camera, renderer, effect, controls;
+var fireworksManager;
 var light;
 var lastTime;
 var artificial_vr;
@@ -25,38 +28,74 @@ function init() {
   scene = new THREE.Scene();
 
   // fog effect for distant buildings
-  scene.fog = new THREE.FogExp2(night_sky, 0.0025);
+  scene.fog = new THREE.FogExp2(night_sky, 0.0010);
 
   // add lighting to model the sun above the scene
-  light = new THREE.HemisphereLight(0xfffff0, 0x101020, 1);
+  light = new THREE.HemisphereLight(0xffffff, 0x101018, 1);
   light.position.set(0.75, 1, 0.25);
   scene.add(light);
 
+
+
+
+  // add stars to the sky
+  const starsGeometry = new THREE.Geometry();
+
+  for (let i = 0; i < 10000; i++) {
+    const star = new THREE.Vector3();
+    star.x = THREE.Math.randFloatSpread(2000);
+    star.y = THREE.Math.randFloatSpread(2000);
+    star.z = THREE.Math.randFloatSpread(2000);
+    starsGeometry.vertices.push(star)
+  }
+  const starsMaterial = new THREE.PointsMaterial({
+    color: 0xcccccc
+  })
+  const starField = new THREE.Points(starsGeometry, starsMaterial);
+  scene.add(starField);
+
+
+
+
   // add the ground/base of the city
-  let plane = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshBasicMaterial({
+  let plane = new THREE.Mesh(new THREE.PlaneGeometry(2500, 2500), new THREE.MeshBasicMaterial({
     color: 0x101018
   }));
-  plane.position.set(0, -100, 0);
+  plane.position.set(0, 0, 0);
   plane.rotation.x = -90 * Math.PI / 180;
   scene.add(plane);
 
-  // add the procedurally generated city to the scene
-  const city_mesh = new City(15000, renderer.getMaxAnisotropy()).mesh;
-  city_mesh.position.set(0, -90, 0);
+  // add the procedurally generated city to the scene (made with perlin noise!)
+  const city_mesh = new City(5000, renderer.getMaxAnisotropy()).mesh;
+  city_mesh.position.set(0, 0, 0);
   scene.add(city_mesh);
+
+  // add background mountain ring (made with perlin noise!)
+  const mountain_mesh = new Mountains(1400, 100).mesh;
+  mountain_mesh.position.set(0, -10, 0);
+  mountain_mesh.rotation.x = -90 * Math.PI / 180;
+  scene.add(mountain_mesh);
 
   // add centered building below viewer
   let anchor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshBasicMaterial({
     color: 0xcccccc
   }));
-  anchor.position.set(0, -10, 0);
+  anchor.position.set(0, 100, 0);
   anchor.rotation.x = -90 * Math.PI / 180;
   scene.add(anchor);
+
+
+  // init fireworks manager!
+  fireworksManager = new FireworksManager(scene);
+
+
+
 
   lastTime = performance.now();
 
   // Camera should be anchored on top of the central building
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
+  camera.position.y = 120;
 
   // allow for VR headset navigation and viewing
   controls = new THREE.VRControls(camera);
@@ -102,5 +141,17 @@ function render() {
     camera.rotation.y += 0.001; // slow pan around the scene
   }
   controls.update();
+
+  // fireworks!
+  if (Math.random() < 0.05) {
+    const x = Math.floor(Math.random() * 200 - 100) * 10;
+    const z = (Math.floor(Math.random() * 200 - 100) * 10) + 60;
+    const from = new THREE.Vector3(x, 10, z);
+    const to = new THREE.Vector3(x, 250 + (Math.random() * 100), z);
+    fireworksManager.launch(from, to);
+  }
+  fireworksManager.update();
+
+
   effect.render(scene, camera);
 }

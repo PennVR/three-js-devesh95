@@ -45,8 +45,11 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	const City = __webpack_require__(1);
+	const FireworksManager = __webpack_require__(3);
+	const Mountains = __webpack_require__(4);
 
 	var scene, camera, renderer, effect, controls;
+	var fireworksManager;
 	var light;
 	var lastTime;
 	var artificial_vr;
@@ -71,38 +74,64 @@
 	  scene = new THREE.Scene();
 
 	  // fog effect for distant buildings
-	  scene.fog = new THREE.FogExp2(night_sky, 0.0025);
+	  scene.fog = new THREE.FogExp2(night_sky, 0.0010);
 
 	  // add lighting to model the sun above the scene
-	  light = new THREE.HemisphereLight(0xfffff0, 0x101020, 1);
+	  light = new THREE.HemisphereLight(0xffffff, 0x101018, 1);
 	  light.position.set(0.75, 1, 0.25);
 	  scene.add(light);
 
+	  // add stars to the sky
+	  const starsGeometry = new THREE.Geometry();
+
+	  for (let i = 0; i < 10000; i++) {
+	    const star = new THREE.Vector3();
+	    star.x = THREE.Math.randFloatSpread(2000);
+	    star.y = THREE.Math.randFloatSpread(2000);
+	    star.z = THREE.Math.randFloatSpread(2000);
+	    starsGeometry.vertices.push(star);
+	  }
+	  const starsMaterial = new THREE.PointsMaterial({
+	    color: 0xcccccc
+	  });
+	  const starField = new THREE.Points(starsGeometry, starsMaterial);
+	  scene.add(starField);
+
 	  // add the ground/base of the city
-	  let plane = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshBasicMaterial({
+	  let plane = new THREE.Mesh(new THREE.PlaneGeometry(2500, 2500), new THREE.MeshBasicMaterial({
 	    color: 0x101018
 	  }));
-	  plane.position.set(0, -100, 0);
+	  plane.position.set(0, 0, 0);
 	  plane.rotation.x = -90 * Math.PI / 180;
 	  scene.add(plane);
 
-	  // add the procedurally generated city to the scene
-	  const city_mesh = new City(15000, renderer.getMaxAnisotropy()).mesh;
-	  city_mesh.position.set(0, -90, 0);
+	  // add the procedurally generated city to the scene (made with perlin noise!)
+	  const city_mesh = new City(5000, renderer.getMaxAnisotropy()).mesh;
+	  city_mesh.position.set(0, 0, 0);
 	  scene.add(city_mesh);
+
+	  // add background mountain ring (made with perlin noise!)
+	  const mountain_mesh = new Mountains(1400, 100).mesh;
+	  mountain_mesh.position.set(0, -10, 0);
+	  mountain_mesh.rotation.x = -90 * Math.PI / 180;
+	  scene.add(mountain_mesh);
 
 	  // add centered building below viewer
 	  let anchor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshBasicMaterial({
 	    color: 0xcccccc
 	  }));
-	  anchor.position.set(0, -10, 0);
+	  anchor.position.set(0, 100, 0);
 	  anchor.rotation.x = -90 * Math.PI / 180;
 	  scene.add(anchor);
+
+	  // init fireworks manager!
+	  fireworksManager = new FireworksManager(scene);
 
 	  lastTime = performance.now();
 
 	  // Camera should be anchored on top of the central building
 	  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
+	  camera.position.y = 120;
 
 	  // allow for VR headset navigation and viewing
 	  controls = new THREE.VRControls(camera);
@@ -143,6 +172,17 @@
 	    camera.rotation.y += 0.001; // slow pan around the scene
 	  }
 	  controls.update();
+
+	  // fireworks!
+	  if (Math.random() < 0.05) {
+	    const x = Math.floor(Math.random() * 200 - 100) * 10;
+	    const z = Math.floor(Math.random() * 200 - 100) * 10 + 60;
+	    const from = new THREE.Vector3(x, 10, z);
+	    const to = new THREE.Vector3(x, 250 + Math.random() * 100, z);
+	    fireworksManager.launch(from, to);
+	  }
+	  fireworksManager.update();
+
 	  effect.render(scene, camera);
 	}
 
@@ -196,12 +236,13 @@
 
 	    // generate randomized buildings within the city
 	    for (let i = 0; i < this.numBuildings; i++) {
-	      const noise = this.simplex.noise(i, i + 2); // simplex noise
+	      const scaleFactor = 40;
 	      building.position.x = Math.floor(Math.random() * 200 - 100) * 10;
 	      building.position.z = Math.floor(Math.random() * 200 - 100) * 10;
+	      const noise = scaleFactor * this.simplex.noise(building.position.x, building.position.z); // simplex noise
 	      building.rotation.y = Math.random();
 	      building.scale.x = building.scale.z = Math.random() * Math.random() * Math.random() * Math.random() * 50 + 10;
-	      building.scale.y = noise * 100 + 10; // building height noise map
+	      building.scale.y = noise * 80 + 10; // building height noise map
 
 	      // merge each building to the city mesh
 	      building.updateMatrix();
@@ -269,7 +310,7 @@
 	    context2.mozImageSmoothingEnabled = false;
 	    context2.drawImage(canvas, 0, 0, canvas2.width, canvas2.height);
 
-	    return canvas2;
+	    return canvas2; // needed to ensure that there is no blurry light effect
 	  }
 	}
 
@@ -281,19 +322,47 @@
 
 	/**
 	 * Implementation of Perlin noise generator using the simplex generator
+	 *
+	 * Sources referenced: http://flafla2.github.io/2014/08/09/perlinnoise.html
 	 */
 
 	class SimplexNoise {
 
 	  constructor(r = Math) {
-	    this.grad3 = [[1, 1, 0], [-1, 1, 0], [1, -1, 0], [-1, -1, 0], [1, 0, 1], [-1, 0, 1], [1, 0, -1], [-1, 0, -1], [0, 1, 1], [0, -1, 1], [0, 1, -1], [0, -1, -1]];
+	    // construct the cube vertex locations
+	    this.cube_grid = [];
+	    for (let i = 0; i < 3; i++) {
+	      let zero_idx = 2 - i;
+	      for (let j = 0; j < 4; j++) {
+	        let mat = [];
+	        switch (j) {
+	          case 0:
+	            mat = mat.concat([1, 1]);
+	            break;
+	          case 1:
+	            mat = mat.concat([-1, 1]);
+	            break;
+	          case 2:
+	            mat = mat.concat([1, -1]);
+	            break;
+	          case 3:
+	            mat = mat.concat([-1, -1]);
+	            break;
+	        }
+	        mat.splice(zero_idx, 0, 0);
+	        this.cube_grid.push(mat);
+	      }
+	    }
+
+	    // create the permutation table (256 random values)
 	    this.p = [];
-	    for (var i = 0; i < 256; i++) {
+	    for (let i = 0; i < 256; i++) {
 	      this.p[i] = Math.floor(r.random() * 256);
 	    }
-	    this.perm = [];
-	    for (var i = 0; i < 512; i++) {
-	      this.perm[i] = this.p[i & 255];
+	    // doubled, to prevent underflow
+	    this.permutation_table = [];
+	    for (let i = 0; i < 512; i++) {
+	      this.permutation_table[i] = this.p[i & 255];
 	    }
 	  }
 
@@ -301,19 +370,24 @@
 	    return g[0] * x + g[1] * y;
 	  }
 
-	  noise(xin, yin) {
-	    let n0 = 0.0;
-	    let n1 = 0.0;
-	    let n2 = 0.0;
-	    const F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
-	    const s = (xin + yin) * F2;
-	    const i = Math.floor(xin + s);
-	    const j = Math.floor(yin + s);
-	    const G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
-	    const t = (i + j) * G2;
-	    const x0 = xin - (i - t);
-	    const y0 = yin - (j - t);
+	  fade(grid_idx, x, y) {
+	    const intercept = 0.5;
+	    let fade = intercept - x * x - y * y;
+	    if (fade > 0) {
+	      return fade * fade * fade * this.dot(this.cube_grid[grid_idx], x, y);
+	    } else {
+	      return 0;
+	    }
+	  }
 
+	  noise(x, y) {
+	    // snap to the cubes used to smooth promixity vectors
+	    const s = (x + y) * (0.5 * (Math.sqrt(3.0) - 1.0));
+	    const i = Math.floor(x + s);
+	    const j = Math.floor(y + s);
+	    const t = (i + j) * ((3.0 - Math.sqrt(3.0)) / 6.0);
+	    const x0 = x - (i - t);
+	    const y0 = y - (j - t);
 	    let i1 = 0;
 	    let j1 = 1;
 	    if (x0 > y0) {
@@ -321,39 +395,243 @@
 	      j1 = 0;
 	    }
 
-	    const x1 = x0 - i1 + G2;
-	    const y1 = y0 - j1 + G2;
-	    const x2 = x0 - 1.0 + 2.0 * G2;
-	    const y2 = y0 - 1.0 + 2.0 * G2;
+	    // get snapped coords based on the first snap
+	    const offset = (3.0 - Math.sqrt(3.0)) / 6.0;
+	    const x1 = x0 - i1 + offset;
+	    const y1 = y0 - j1 + offset;
+	    const x2 = x0 - 1.0 + 2.0 * offset;
+	    const y2 = y0 - 1.0 + 2.0 * offset;
 
+	    // choose a random permutation for each axis
 	    const ii = i & 255;
 	    const jj = j & 255;
-	    const gi0 = this.perm[ii + this.perm[jj]] % 12;
-	    const gi1 = this.perm[ii + i1 + this.perm[jj + j1]] % 12;
-	    const gi2 = this.perm[ii + 1 + this.perm[jj + 1]] % 12;
+	    const gi0 = this.permutation_table[ii + this.permutation_table[jj]] % 12;
+	    const gi1 = this.permutation_table[ii + i1 + this.permutation_table[jj + j1]] % 12;
+	    const gi2 = this.permutation_table[ii + 1 + this.permutation_table[jj + 1]] % 12;
 
-	    let t0 = 0.5 - x0 * x0 - y0 * y0;
-	    if (t0 > 0) {
-	      t0 *= t0;
-	      n0 = t0 * t0 * this.dot(this.grad3[gi0], x0, y0);
-	    }
-	    let t1 = 0.5 - x1 * x1 - y1 * y1;
-	    if (t1 > 0) {
-	      t1 *= t1;
-	      n1 = t1 * t1 * this.dot(this.grad3[gi1], x1, y1);
-	    }
-	    let t2 = 0.5 - x2 * x2 - y2 * y2;
-	    if (t2 > 0) {
-	      t2 *= t2;
-	      n2 = t2 * t2 * this.dot(this.grad3[gi2], x2, y2);
-	    }
-
-	    return 70.0 * (n0 + n1 + n2);
+	    // apply fades and return!
+	    return this.fade(gi0, x0, y0) + this.fade(gi1, x1, y1) + this.fade(gi2, x2, y2);
 	  }
 
 	};
 
 	module.exports = SimplexNoise;
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	/**
+	 * Generate fireworks!
+	 *
+	 * @author: Devesh Dayal
+	 */
+
+	class FireworksManager {
+
+	  constructor(scene, explosionMaxSize = 60, explosionScatter = 200) {
+	    this.scene = scene;
+	    this.toExplode = {};
+	    this.hasExploded = {};
+	    this.nextID = 0;
+	    this.explosionMaxSize = explosionMaxSize;
+	    this.explosionScatter = explosionScatter;
+	  }
+
+	  _getFireworkID() {
+	    this.nextID++;
+	    return this.nextID;
+	  }
+
+	  _getRandomColor() {
+	    const color = new THREE.Color();
+	    color.setHSL(THREE.Math.randFloat(0.1, 0.9), 1, 0.6);
+	    return color;
+	  }
+
+	  _getMaterial() {
+	    return new THREE.PointsMaterial({
+	      size: 5,
+	      color: 0xffffff,
+	      opacity: 1,
+	      vertexColors: true,
+	      transparent: true,
+	      depthTest: false
+	    });
+	  }
+
+	  launch(from, to) {
+	    const fid = this._getFireworkID();
+	    const color = this._getRandomColor();
+
+	    const material = this._getMaterial();
+
+	    // firework geometry currently only consists of a single point
+	    const geometry = new THREE.Geometry();
+	    geometry.colors = [color];
+	    geometry.vertices.push(from); // from vector
+	    const destination = to; // to vector
+
+	    // only one particle so far (the ignition)
+	    const particle = new THREE.Points(geometry, material);
+
+	    // keep track of firework to explode
+	    this.toExplode[fid] = {
+	      color,
+	      destination,
+	      fid,
+	      geometry,
+	      particle
+	    };
+
+	    // actually add to scene
+	    this.scene.add(particle);
+	    // return firework ID
+	    return fid;
+	  }
+
+	  ignite(fid) {
+	    const exploded = this.toExplode[fid];
+	    // remove from the scene
+	    this.scene.remove(exploded.particle);
+
+	    // create a new points geometry for the explosion effect
+	    const material = this._getMaterial();
+	    const geometry = new THREE.Geometry();
+	    const particles = new THREE.Points(geometry, material);
+
+	    const in_vector = exploded.particle.geometry.vertices[0];
+
+	    // create explosion particles
+	    const colors = [];
+	    const destinations = [];
+	    const explosionSize = Math.random() * (this.explosionMaxSize - 50) + 50;
+	    for (let i = 0; i < explosionSize; i++) {
+	      const color = this._getRandomColor();
+	      colors.push(color);
+
+	      // add starting (from) vector
+	      geometry.vertices.push(new THREE.Vector3(THREE.Math.randInt(in_vector.x - 10, in_vector.x + 10), THREE.Math.randInt(in_vector.y - 10, in_vector.y + 10), THREE.Math.randInt(in_vector.z - 10, in_vector.z + 10)));
+
+	      // add random destination vector
+	      destinations.push(new THREE.Vector3(THREE.Math.randInt(in_vector.x - this.explosionScatter, in_vector.x + this.explosionScatter), THREE.Math.randInt(in_vector.y - this.explosionScatter, in_vector.y + this.explosionScatter), THREE.Math.randInt(in_vector.z - this.explosionScatter, in_vector.z + this.explosionScatter)));
+	    }
+	    geometry.colors = colors;
+
+	    // keep track of particles that have exploded
+	    this.hasExploded[fid] = {
+	      colors,
+	      destinations,
+	      fid,
+	      geometry,
+	      material,
+	      particles
+	    };
+	    delete this.toExplode[fid];
+
+	    // add particles to the scene
+	    this.scene.add(particles);
+	  }
+
+	  update() {
+	    const toExplodeIDs = Object.keys(this.toExplode);
+	    const hasExplodedIDs = Object.keys(this.hasExploded);
+
+	    // single particles
+	    if (toExplodeIDs.length) {
+	      for (let fid of toExplodeIDs) {
+	        const particle = this.toExplode[fid];
+	        // update position (only y changes)
+	        particle.geometry.vertices[0].y += (particle.destination.y - particle.geometry.vertices[0].y) / 20;
+	        particle.geometry.verticesNeedUpdate = true;
+
+	        // check if particle should explode
+	        if (Math.ceil(particle.geometry.vertices[0].y) > particle.destination.y - 20) {
+	          // ignite!
+	          this.ignite(fid);
+	        }
+	      }
+	    }
+
+	    // exploded particles
+	    if (hasExplodedIDs.length) {
+	      for (let fid of hasExplodedIDs) {
+	        const firework = this.hasExploded[fid];
+	        // check if needs removing
+	        if (firework.material.opacity <= 0) {
+	          this.scene.remove(firework.particles);
+	          delete this.hasExploded[fid];
+	          continue;
+	        } else {
+	          // linearly interpolate for each of exploding particles
+	          for (let i = 0; i < firework.geometry.vertices.length; i++) {
+	            // update position
+	            firework.geometry.vertices[i].x += (firework.destinations[i].x - firework.geometry.vertices[i].x) / 15;
+	            firework.geometry.vertices[i].y += (firework.destinations[i].y - firework.geometry.vertices[i].y) / 15;
+	            firework.geometry.vertices[i].z += (firework.destinations[i].z - firework.geometry.vertices[i].z) / 15;
+	            firework.geometry.verticesNeedUpdate = true;
+	          }
+	          // lower opacity
+	          firework.material.opacity -= 0.015;
+	          firework.material.colorsNeedUpdate = true;
+	        }
+	      }
+	    }
+	  }
+
+	}
+
+	module.exports = FireworksManager;
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Procedurally generated ring of mountains around a scene
+	 *
+	 * @author: Devesh Dayal
+	 */
+
+	const SimplexNoise = __webpack_require__(2);
+
+	class Mountains {
+
+	  constructor(radius = 100, numPeaks = 50) {
+	    this.radius = radius;
+	    this.numPeaks = numPeaks;
+	    this.simplex = new SimplexNoise();
+	  }
+
+	  get mesh() {
+	    this._constructMesh();
+	    return this.mountain_mesh;
+	  }
+
+	  _constructMesh() {
+	    // create a thin ring (for the mountain horizon)
+	    this.mountain_geometry = new THREE.RingGeometry(this.radius, this.radius + 10, this.numPeaks);
+	    this._generateHorizon();
+	    // create a simple material
+	    const ring_material = new THREE.MeshLambertMaterial({ color: 0x968D99 });
+	    this.mountain_mesh = new THREE.Mesh(this.mountain_geometry, ring_material);
+	  }
+
+	  _generateHorizon() {
+	    this.mountain_geometry.dynamic = true;
+	    // distort vertices using noise
+	    for (let i = this.mountain_geometry.vertices.length / 2 + 1; i < this.mountain_geometry.vertices.length; i++) {
+	      const vertex = this.mountain_geometry.vertices[i];
+	      const noise = Math.abs(this.simplex.noise(vertex.x, vertex.y) * 70);
+	      this.mountain_geometry.vertices[i].z += 80 * noise + 60;
+	    }
+	    this.mountain_geometry.verticesNeedUpdate = true;
+	    this.mountain_geometry.colorsNeedUpdate = true;
+	  }
+
+	}
+
+	module.exports = Mountains;
 
 /***/ }
 /******/ ]);

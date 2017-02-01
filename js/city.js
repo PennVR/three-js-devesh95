@@ -44,12 +44,13 @@ class City {
 
     // generate randomized buildings within the city
     for (let i = 0; i < this.numBuildings; i++) {
-      const noise = this.simplex.noise(i, i+2); // simplex noise
+      const scaleFactor = 40;
       building.position.x = Math.floor(Math.random() * 200 - 100) * 10;
       building.position.z = Math.floor(Math.random() * 200 - 100) * 10;
+      const noise = scaleFactor * this.simplex.noise(building.position.x, building.position.z); // simplex noise
       building.rotation.y = Math.random();
       building.scale.x = building.scale.z = Math.random() * Math.random() * Math.random() * Math.random() * 50 + 10;
-      building.scale.y = (noise * 100) + 10; // building height noise map
+      building.scale.y = (noise * 80) + 10; // building height noise map
 
       // merge each building to the city mesh
       building.updateMatrix();
@@ -117,7 +118,7 @@ class City {
     context2.mozImageSmoothingEnabled = false;
     context2.drawImage(canvas, 0, 0, canvas2.width, canvas2.height);
 
-    return canvas2;
+    return canvas2; // needed to ensure that there is no blurry light effect
   }
 }
 
