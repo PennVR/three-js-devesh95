@@ -38,7 +38,6 @@ function init() {
 
 
 
-
   // add stars to the sky
   const starsGeometry = new THREE.Geometry();
 
@@ -57,7 +56,6 @@ function init() {
 
 
 
-
   // add the ground/base of the city
   let plane = new THREE.Mesh(new THREE.PlaneGeometry(2500, 2500), new THREE.MeshBasicMaterial({
     color: 0x101018
@@ -68,7 +66,7 @@ function init() {
 
   // add the procedurally generated city to the scene (made with perlin noise!)
   const city_mesh = new City(5000, renderer.getMaxAnisotropy()).mesh;
-  city_mesh.position.set(0, 0- HMD_OFFSET, 0);
+  city_mesh.position.set(0, 0 - HMD_OFFSET, 0);
   scene.add(city_mesh);
 
   // add background mountain ring (made with perlin noise!)
@@ -91,19 +89,18 @@ function init() {
 
 
 
-
   lastTime = performance.now();
 
   // Camera should be anchored on top of the central building
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 3000);
   camera.position.y = 120 - HMD_OFFSET;
 
-  // allow for VR headset navigation and viewing
-  controls = new THREE.VRControls(camera);
-  effect = new THREE.VREffect(renderer);
 
-  if (navigator.getVRDisplays) {    
+  if (navigator.getVRDisplays) {
     artificial_vr = false;
+    // allow for VR headset navigation and viewing
+    controls = new THREE.VRControls(camera);
+    effect = new THREE.VREffect(renderer);
     navigator.getVRDisplays()
       .then((displays) => {
         effect.setVRDisplay(displays[0]);
@@ -117,20 +114,31 @@ function init() {
     document.body.appendChild(WEBVR.getButton(effect));
   } else {
     artificial_vr = true;
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableZoom = false;
   }
 
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
-    effect.setSize(window.innerWidth, window.innerHeight);
+    if (artificial_vr) {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    } else {
+      effect.setSize(window.innerWidth, window.innerHeight);
+    }
   });
 
 }
 
 
 function animate() {
-  effect.requestAnimationFrame(animate);
+  if (artificial_vr) {
+    requestAnimationFrame(animate);
+  } else {
+    effect.requestAnimationFrame(animate);
+  }
+  
   const time = performance.now() / 1000;
   render();
   lastTime = time;
@@ -138,9 +146,6 @@ function animate() {
 
 
 function render() {
-  if (artificial_vr) {
-    camera.rotation.y += 0.001; // slow pan around the scene
-  }
   controls.update();
 
   // fireworks!
@@ -154,6 +159,9 @@ function render() {
   }
   fireworksManager.update();
 
-
-  effect.render(scene, camera);
+  if (artificial_vr) {
+    renderer.render(scene, camera);
+  } else {
+    effect.render(scene, camera);
+  }
 }

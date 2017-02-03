@@ -28,12 +28,13 @@ class FireworksManager {
 
   _getMaterial() {
     return new THREE.PointsMaterial({
-      size: 4,
+      size: 5,
       color: 0xffffff,
       opacity: 1,
       vertexColors: true,
       transparent: true,
       depthTest: false,
+      // lights: true
     });
   }
 
@@ -63,6 +64,7 @@ class FireworksManager {
 
     // actually add to scene
     this.scene.add(particle);
+
     // return firework ID
     return fid;
   }
@@ -114,6 +116,15 @@ class FireworksManager {
       material,
       particles,
     };
+    if (Math.abs(in_vector.z) < 250 && Math.abs(in_vector.z) > 1) {
+      const intensity = 15 / Math.abs(in_vector.z);
+      const light = new THREE.DirectionalLight(exploded.color, intensity);
+      light.target.position.set(in_vector.x, -120, in_vector.z);
+      light.position.set(in_vector.x, in_vector.y, in_vector.z);
+      this.hasExploded[fid].light = light;
+      this.hasExploded[fid].intensity = intensity;
+      this.scene.add(light);
+    }
     delete this.toExplode[fid];
 
     // add particles to the scene
@@ -147,6 +158,9 @@ class FireworksManager {
         // check if needs removing
         if (firework.material.opacity <= 0) {
           this.scene.remove(firework.particles);
+          if (firework.light) {
+            this.scene.remove(firework.light);
+          }
           delete this.hasExploded[fid];
           continue;
         } else {
@@ -161,6 +175,9 @@ class FireworksManager {
           // lower opacity
           firework.material.opacity -= 0.015;
           firework.material.colorsNeedUpdate = true;
+          if (firework.light && firework.light.intensity > 0) {
+            firework.light.intensity -= firework.intensity / 10;
+          }
         }
       }
     }
