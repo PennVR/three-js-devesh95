@@ -6,13 +6,15 @@
 
 class FireworksManager {
 
-  constructor(scene, explosionMaxSize = 100, explosionScatter = 200) {
+  constructor(scene, explosionMaxSize = 100, explosionScatter = 200, flashDistance = 300, maxFlashIntensity = 15) {
     this.scene = scene;
     this.toExplode = {};
     this.hasExploded = {};
     this.nextID = 0;
     this.explosionMaxSize = explosionMaxSize;
     this.explosionScatter = explosionScatter;
+    this.flashDistance = flashDistance;
+    this.maxFlashIntensity = maxFlashIntensity;
   }
 
   _getFireworkID() {
@@ -116,8 +118,11 @@ class FireworksManager {
       material,
       particles,
     };
-    if (Math.abs(in_vector.z) < 250 && Math.abs(in_vector.z) > 1) {
-      const intensity = 15 / Math.abs(in_vector.z);
+
+    // add a direction light pointing straight down to the base of the city
+    // intensity is inversely proportional to the z distance from the camera
+    if (Math.abs(in_vector.z) < this.flashDistance && Math.abs(in_vector.z) > 1) {
+      const intensity = this.maxFlashIntensity / Math.abs(in_vector.z);
       const light = new THREE.DirectionalLight(exploded.color, intensity);
       light.target.position.set(in_vector.x, -120, in_vector.z);
       light.position.set(in_vector.x, in_vector.y, in_vector.z);
